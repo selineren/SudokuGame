@@ -1,18 +1,20 @@
-package Abstract;
+package Has;
 //Java Sudoku Game
 import java.util.ArrayList;
 
 import Interface.GameActions;
 
-public class SudokuBoard implements GameActions {//implements the interface and it's signature methods
+public class SudokuBoard implements GameActions { // Implements the interface and its signature methods
     private int[][] board;
-    private boolean[][] isInitialValue;  //Tracks cells that are pre-filled and cannot be changed.
-    private ArrayList<int[]> moveHistory; // Records the player's moves to support the undo feature.
+    private boolean[][] isInitialValue;  // Tracks cells that are pre-filled and cannot be changed
+    private ArrayList<int[]> moveHistory; // Records the player's moves to support the undo feature
+    private boolean[][] isEditable; // Tracks cells that are editable
 
     public SudokuBoard() {
         this.board = new int[9][9];
         this.isInitialValue = new boolean[9][9];  
         this.moveHistory = new ArrayList<>();
+        this.isEditable = new boolean[9][9];
     }
 
     @Override
@@ -30,15 +32,6 @@ public class SudokuBoard implements GameActions {//implements the interface and 
                 {0, 0, 0, 4, 1, 9, 0, 0, 5},
                 {0, 0, 0, 0, 8, 0, 0, 7, 9}
             };
-
-           
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
-                    if (board[i][j] != 0) {
-                        isInitialValue[i][j] = true;  //copies board to initial board
-                    }
-                }
-            }
         } else if (difficulty.equalsIgnoreCase("classic")) {
             board = new int[][]{
                 {8, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -51,25 +44,29 @@ public class SudokuBoard implements GameActions {//implements the interface and 
                 {0, 0, 8, 5, 0, 0, 0, 1, 0},
                 {0, 9, 0, 0, 0, 0, 4, 0, 0}
             };
+        }
+        markEditableCells(); // Update isEditable
+        moveHistory.clear();  // Clear the move history at the beginning of a new game
+    }
 
-            
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
-                    if (board[i][j] != 0) {
-                        isInitialValue[i][j] = true;  //copies board to initial board
-                    }
+    public void markEditableCells() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] == 0) {
+                    isEditable[i][j] = true; // Editable if the cell is empty
+                } else {
+                    isEditable[i][j] = false; // Not editable if pre-filled
                 }
             }
         }
-        moveHistory.clear();  //there is no move yet
     }
 
-    public void setCell(int row, int col, int value) {//updates the board
-        if (isInitialValue[row][col]) {
+    public void setCell(int row, int col, int value) { // Updates the board
+        if (!isEditable[row][col]) { // Check if the cell is editable
             System.out.println("You cannot change the initial values of the board.");
             return;
         }
-        moveHistory.add(new int[]{row, col, board[row][col]});//copies the move into history
+        moveHistory.add(new int[]{row, col, board[row][col]}); // Add move to history
         board[row][col] = value;
     }
 
@@ -117,13 +114,6 @@ public class SudokuBoard implements GameActions {//implements the interface and 
         return false; // No valid moves left
     }
 
-    public void undoLastMove() {
-        if (!moveHistory.isEmpty()) {
-            int[] lastMove = moveHistory.remove(moveHistory.size() - 1);
-            board[lastMove[0]][lastMove[1]] = lastMove[2];
-        }
-    }
-
     public boolean isBoardFull() {
         for (int[] row : board) {
             for (int cell : row) {
@@ -134,29 +124,32 @@ public class SudokuBoard implements GameActions {//implements the interface and 
     }
 
     public String display() {
-    	String out = "";
+        String boardString = ""; // Use a simple String to accumulate the result
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 if (board[i][j] == 0) {
-                    out += ". ";
+                    boardString += ". "; // Empty cells represented as "."
                 } else {
-                    out += board[i][j] + " ";
+                    boardString += board[i][j] + " ";
                 }
-                if (j == 2 || j == 5) 
-                	out += "| ";
+                if (j == 2 || j == 5) {
+                    boardString += "| "; // Vertical grid lines
+                }
             }
-            out+="\n";
-            if (i == 2 || i == 5) 
-            	out+= "------+-------+------\n";
+            boardString += "\n";
+            if (i == 2 || i == 5) {
+                boardString += "------+-------+------\n"; // Horizontal grid lines
+            }
         }
-        return out;
+        return boardString;
     }
+
+
 
     public void solveAndDisplaySolution() {
         // Simple backtracking solver (just for display purposes)
         if (solve()) {
             System.out.println("Solved Sudoku Board:");
-            
         } else {
             System.out.println("No solution exists.");
         }
@@ -166,21 +159,29 @@ public class SudokuBoard implements GameActions {//implements the interface and 
     public boolean solve() {
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
-                if (board[row][col] == 0) {  // Empty cell
+                if (board[row][col] == 0) { // Empty cell
                     for (int num = 1; num <= 9; num++) {
                         if (isValidMove(row, col, num)) {
-                            board[row][col] = num;
+                            board[row][col] = num; // Place the number
                             if (solve()) {
-                                return true;
+                                return true; // Continue solving
                             }
-                            board[row][col] = 0;  // Backtrack
+                            board[row][col] = 0; // Backtrack
                         }
                     }
-                    return false;  // No valid number can be placed here
+                    return false; // No valid number can be placed here
                 }
             }
         }
-        return true;  // Solved!
+        return true; // Solved
     }
 
+
+    public int[][] getBoard() {
+        return board;
+    }
+
+    public boolean[][] getEditable() {
+        return isEditable;
+    }
 }

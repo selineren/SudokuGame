@@ -8,7 +8,6 @@ public class SudokuEasy extends SudokuGame {
 
     @Override
     public void startGame() { //abstract class overriding 
-        System.out.println("Starting " + difficultyLevel + " Sudoku game!");//Specifies the type of game it comes from the user
         board.generateBoard(difficultyLevel);//Generates the board according to difficulty
     }
 }

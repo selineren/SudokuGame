@@ -12,15 +12,15 @@ public class SudokuSystem {
     private static ArrayList<SudokuGame> games = new ArrayList<>();//it creates array to store games that are played
     private static ArrayList<SudokuGame> result = new ArrayList<>();
     
-    public static ArrayList<SudokuGame> searchGamesByDifficulty(String difficulty) {  
-    for (SudokuGame game : games) {
-        if (game.getDifficultyLevel().equalsIgnoreCase(difficulty)) { 
-            result.add(game);
+    public static ArrayList<SudokuGame> searchGamesByDifficulty(String difficulty) {
+        ArrayList<SudokuGame> result = new ArrayList<>();
+        for (SudokuGame game : games) {
+            if (game.getDifficultyLevel().equalsIgnoreCase(difficulty)) {
+                result.add(game);
+            }
         }
+        return result; // Returns the list of games matching the difficulty
     }
-    return result; // Returns the list of games matching the difficulty
-}
-
 
 
     public static SudokuGame startGame(String difficulty) {
@@ -44,7 +44,7 @@ public class SudokuSystem {
     public static String displayBoards() {
     	String out = "";
     	for(SudokuGame board : games) {
-    		out += board.displayBoard() + "\n";
+    		out += board.displayBoard() + "\n";	
     	}
     	return out;
     }
@@ -67,6 +67,43 @@ public class SudokuSystem {
 
         return wins / losses; // Calculate and return the win/loss ratio
     }
+
+    public static int getTotalGames() {
+        return games.size(); 
+    }
+
+    public static int getTotalWins() {
+    	int count=0;
+    	for(SudokuGame game: games) {
+    		if(game.isSolved()) {
+    			count++;
+    		}
+    	}
+        return count;
+    }
     
-    
+    public static void incrementLosses() {
+        if (!games.isEmpty()) {
+            SudokuGame game = games.get(games.size() - 1); // Get the last played game
+            if (!game.isSolved() && !game.isLost()) { // Ensure it's not already solved or marked as lost
+                game.setLoss(); // Mark the game as lost
+            }
+        }
+    }
+
+	public static ArrayList<SudokuGame> getGames() {
+		return games;
+	}
+	
+	public static int getTotalLosses() {
+	    int count = 0;
+	    for (SudokuGame game : games) {
+	        if (game.isLost()) {
+	            count++;
+	        }
+	    }
+	    return count;
+	}
+
+
 }
